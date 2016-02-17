@@ -1,3 +1,5 @@
+//Sample command line arguments "-s 0.45 -b 0.25 -i 0.25 -w 0.04 -n 30 -f MarketData.csv"
+
 package swr;
 
 import java.io.BufferedInputStream;
