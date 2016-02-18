@@ -10,18 +10,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-public class SafeWithdrawlRate
+public class SafeWithdrawalRate
 {
    public static void main(String[] args) throws IOException
    {
       Portfolio portfolio = new Portfolio(args);
       String fileName = portfolio.getMarketHistoryFileName();
-      Double[][] fileInfoArray = new Double[countLines(fileName)-1][4];
-      Double portfolioPercent = 1.0;
-      Double withdrawlAmount;
-      int count = 0;
-      int totalCount = 0;
-      
+      Double[][] fileInfoArray = new Double[countLines(fileName) - 1][4];
+
+      portfolio.setCashPercent(1 - (portfolio.getBondPercent()
+            + portfolio.getInflationLinkedPercent()
+            + portfolio.getStockPercent()));
+
+      if (portfolio.getCashPercent() < 0.0)
+      {
+         System.err.println("The percents add up to above 100%. Try Again.");
+         System.exit(1);
+      }
+
+      portfolio.printInfo();
+
       try
       {
          fileInfoArray = loadArray(fileName, fileInfoArray);
@@ -30,35 +38,59 @@ public class SafeWithdrawlRate
          e.printStackTrace();
          System.out.println("File could not be opened for reading.");
       }
-      for (int startYear = 0; startYear < countLines(fileName) - portfolio.getRetirementLength(); startYear++) {
-         portfolioPercent = 1.0;
-         withdrawlAmount = portfolio.getInitialWithdrawlAmount();
 
-         for (int year = startYear; year < startYear + portfolio.getRetirementLength() & portfolioPercent > 0; year++) {            
-            portfolioPercent = (portfolioPercent - withdrawlAmount) + portfolio.yearProfit(fileInfoArray, withdrawlAmount, year, portfolioPercent);
-            withdrawlAmount *= (fileInfoArray[year][2] + 1.0);
+      System.out.printf("==> %.2f%% probability of success!",
+            calculateSuccess(fileName, portfolio, fileInfoArray));
+
+   }
+
+   public static Double calculateSuccess(String fileName, Portfolio portfolio,
+         Double[][] fileInfoArray) throws IOException
+   {
+      Double portfolioPercent;
+      Double withdrawalAmount;
+      int count = 0;
+      int totalCount = 0;
+
+      for (int startYear = 0; startYear < countLines(fileName)
+            - portfolio.getRetirementLength(); startYear++)
+      {
+         portfolioPercent = 1.0;
+         withdrawalAmount = portfolio.getInitialWithdrawalAmount();
+
+         for (int year = startYear; year < startYear
+               + portfolio.getRetirementLength() & portfolioPercent > 0; year++)
+         {
+            portfolioPercent = (portfolioPercent - withdrawalAmount)
+                  + portfolio.yearProfit(fileInfoArray, withdrawalAmount, year,
+                        portfolioPercent);
+            withdrawalAmount *= (fileInfoArray[year][2] + 1.0);
          }
          totalCount++;
-         if (portfolioPercent > 0) {
+         if (portfolioPercent > 0)
+         {
             count++;
          }
       }
-      System.out.println("==> " + ((double)count/totalCount)*100 + "% probability of success!");
+      return (100.0 * count / totalCount);
    }
 
-   public static Double[][] loadArray(String fileName, Double[][] fileInfoArray) throws FileNotFoundException
+   public static Double[][] loadArray(String fileName, Double[][] fileInfoArray)
+         throws FileNotFoundException
    {
       int i = 0;
       Scanner inFile = new Scanner(new File(fileName));
-      
+
       inFile.useDelimiter(",|\\n");
       inFile.nextLine(); // To skip the first line.
-         while(inFile.hasNextDouble()) {
-            for (int j = 0; j < 4; j++) {
-               fileInfoArray[i][j] = inFile.nextDouble();
-            }
-            i++;
+      while (inFile.hasNextDouble())
+      {
+         for (int j = 0; j < 4; j++)
+         {
+            fileInfoArray[i][j] = inFile.nextDouble();
          }
+         i++;
+      }
       inFile.close();
       return fileInfoArray;
    }
@@ -89,5 +121,4 @@ public class SafeWithdrawlRate
          is.close();
       }
    }
-
 }
