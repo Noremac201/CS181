@@ -1,163 +1,140 @@
-package swr;
-
 public class Portfolio
 {
-   private Double bondPercent;
-   private Double inflationLinkedPercent;
-   private Double stockPercent;
-   private int retirementLength;
-   private Double initialWithdrawalAmount;
-   private Double cashPercent;
-   private String marketHistoryFileName;
+	private Double bondPercent;
+	private Double inflationLinkedPercent;
+	private Double stockPercent;
+	private int retirementLength;
+	private Double initialWithdrawalAmount;
+	private Double cashPercent;
+	private String marketHistoryFileName;
 
-   public Portfolio(String[] args)
-   {
-      if (args.length != 1 && args.length != 12)
-      {
-         System.out.println("Please enter the correct number of arguments");
-         System.exit(1);
-      }
-      for (int i = 0; i < args.length; i++)
-      {
-         if (args[i].charAt(0) == '-')
-         {
-            switch (args[i].charAt(1))
-            {
-            case 'h':
-               printRequiredArgs();
-               System.exit(0);
-            case 'f':
-               this.setMarketHistoryFileName(args[i + 1]);
-               break;
-            case 'b':
-               this.setBondPercent(Double.parseDouble(args[i + 1]));
-               break;
-            case 's':
-               this.setStockPercent(Double.parseDouble(args[i + 1]));
-               break;
-            case 'i':
-               this.setInflationLinkedPercent(Double.parseDouble(args[i + 1]));
-               break;
-            case 'w':
-               this.setInitialWithdrawalAmount(Double.parseDouble(args[i + 1]));
-               break;
-            case 'n':
-               this.setRetirementLength(Integer.parseInt(args[i + 1]));
-               break;
-            default:
-               break;
+	/**
+	 * Checks if all inputs are legal.
+	 */
+	public void checkLegal()
+	{
+		if (this.cashPercent < 0.0)
+		{
+			System.err.println("The percents add up to above 100%. Try Again.");
+			System.exit(1);
+		} else if (this.stockPercent < 0.0 || this.inflationLinkedPercent < 0.0
+				|| this.bondPercent < 0.0)
+		{
+			System.err.println("Invalid input for Stock, Bond, or Infl. Linked");
+			System.exit(1);
+		}
+	}
 
-            }
-         }
-      }
-   }
+	/**
+	 * Calculates the yearly profit for a specific year.
+	 * 
+	 * @param fileInfoArray
+	 *           Array to get data from.
+	 * @param withdrawalAmount
+	 *           withdrawlAmount, entered by user.
+	 * @param year
+	 *           Specific year to calculate profit from.
+	 * @param portfolioPercent
+	 *           portfolioPercent, starts at 1.0.
+	 * @return returns the amount of money made for a year in percent.
+	 */
+	public Double yearProfit(Double[][] fileInfoArray, Double withdrawalAmount,
+			int year, Double portfolioPercent)
+	{
+		Double stockProfit = this.stockPercent * (fileInfoArray[year][3] + .02)
+				* (portfolioPercent - withdrawalAmount);
+		Double inflationLinkedProfit = this.inflationLinkedPercent
+				* (fileInfoArray[year][2] + .005)
+				* (portfolioPercent - withdrawalAmount);
+		Double bondProfit = this.bondPercent * (fileInfoArray[year][1] + .005)
+				* (portfolioPercent - withdrawalAmount);
+		return stockProfit + inflationLinkedProfit + bondProfit;
+	}
 
-   public static void printRequiredArgs()
-   {
-      System.out.println("-f <filename>      File containing historical data.");
-      System.out.println("-b <bonds>      Portfolio percent in bonds.");
-      System.out.println("-s <stocks>      Portfolio percent in stocks.");
-      System.out.println("-i <infl>    Portfolio percent in inflation linked.");
-      System.out.println("-w <withdraw>      Initial withdrawal rate.");
-      System.out.println("-n <years>      Years of retirement.");
-      System.out.println("-h <help>       Prints the help and all arguments.");
-      System.out.printf("%n Returns the historical success of a portfolio.%n");
-   }
+	/**
+	 * Prints information about object.
+	 */
+	public void printInfo()
+	{
+		System.out.printf("Bond allocation: %.2f%%%n", this.bondPercent * 100);
+		System.out.printf("Inflation-Linked allocation: %.2f%%%n",
+				this.inflationLinkedPercent * 100);
+		System.out.printf("Stock allocation: %.2f%%%n", this.stockPercent * 100);
+		System.out.printf("Cash allocation: %.2f%%%n", this.cashPercent * 100);
+		System.out.printf("Initial Withdraw Rate: %.2f%%%n",
+				this.initialWithdrawalAmount * 100);
+		System.out.printf("Years of Retirement: %d%n", this.retirementLength);
+	}
 
-   public Double yearProfit(Double[][] fileInfoArray, Double withdrawalAmount,
-         int year, Double portfolioPercent)
-   {
-      Double stockProfit = this.stockPercent * (fileInfoArray[year][3] + .02)
-            * (portfolioPercent - withdrawalAmount);
-      Double inflationLinkedProfit = this.inflationLinkedPercent
-            * (fileInfoArray[year][2] + .005)
-            * (portfolioPercent - withdrawalAmount);
-      Double bondProfit = this.bondPercent * (fileInfoArray[year][1] + .005)
-            * (portfolioPercent - withdrawalAmount);
-      return stockProfit + inflationLinkedProfit + bondProfit;
-   }
+	// Getters and Setters
+	public Double getInflationLinkedPercent()
+	{
+		return inflationLinkedPercent;
+	}
 
-   public void printInfo()
-   {
-      System.out.printf("Bond allocation: %.2f%%%n", this.bondPercent * 100);
-      System.out.printf("Inflation-Linked allocation: %.2f%%%n",
-            this.inflationLinkedPercent * 100);
-      System.out.printf("Stock allocation: %.2f%%%n", this.stockPercent * 100);
-      System.out.printf("Cash allocation: %.2f%%%n", this.cashPercent * 100);
-      System.out.printf("Initial Withdraw Rate: %.2f%%%n",
-            this.initialWithdrawalAmount * 100);
-      System.out.printf("Years of Retirement: %d%n", this.retirementLength);
+	public void setInflationLinkedPercent(Double inflationLinkedPercent)
+	{
+		this.inflationLinkedPercent = inflationLinkedPercent;
+	}
 
-   }
+	public Double getStockPercent()
+	{
+		return stockPercent;
+	}
 
-   public Double getInflationLinkedPercent()
-   {
-      return inflationLinkedPercent;
-   }
+	public void setStockPercent(Double stockPercent)
+	{
+		this.stockPercent = stockPercent;
+	}
 
-   public void setInflationLinkedPercent(Double inflationLinkedPercent)
-   {
-      this.inflationLinkedPercent = inflationLinkedPercent;
-   }
+	public int getRetirementLength()
+	{
+		return retirementLength;
+	}
 
-   public Double getStockPercent()
-   {
-      return stockPercent;
-   }
+	public void setRetirementLength(int retirementLength)
+	{
+		this.retirementLength = retirementLength;
+	}
 
-   public void setStockPercent(Double stockPercent)
-   {
-      this.stockPercent = stockPercent;
-   }
+	public Double getInitialWithdrawalAmount()
+	{
+		return initialWithdrawalAmount;
+	}
 
-   public int getRetirementLength()
-   {
-      return retirementLength;
-   }
+	public void setInitialWithdrawalAmount(Double initialWithdrawalAmount)
+	{
+		this.initialWithdrawalAmount = initialWithdrawalAmount;
+	}
 
-   public void setRetirementLength(int retirementLength)
-   {
-      this.retirementLength = retirementLength;
-   }
+	public Double getCashPercent()
+	{
+		return cashPercent;
+	}
 
-   public Double getInitialWithdrawalAmount()
-   {
-      return initialWithdrawalAmount;
-   }
+	public void setCashPercent(Double cashPercent)
+	{
+		this.cashPercent = cashPercent;
+	}
 
-   public void setInitialWithdrawalAmount(Double initialWithdrawalAmount)
-   {
-      this.initialWithdrawalAmount = initialWithdrawalAmount;
-   }
+	public Double getBondPercent()
+	{
+		return bondPercent;
+	}
 
-   public Double getCashPercent()
-   {
-      return cashPercent;
-   }
+	public void setBondPercent(Double bondPercent)
+	{
+		this.bondPercent = bondPercent;
+	}
 
-   public void setCashPercent(Double cashPercent)
-   {
-      this.cashPercent = cashPercent;
-   }
+	public String getMarketHistoryFileName()
+	{
+		return marketHistoryFileName;
+	}
 
-   public Double getBondPercent()
-   {
-      return bondPercent;
-   }
-
-   public void setBondPercent(Double bondPercent)
-   {
-      this.bondPercent = bondPercent;
-   }
-
-   public String getMarketHistoryFileName()
-   {
-      return marketHistoryFileName;
-   }
-
-   public void setMarketHistoryFileName(String marketHistoryFileName)
-   {
-      this.marketHistoryFileName = marketHistoryFileName;
-   }
+	public void setMarketHistoryFileName(String marketHistoryFileName)
+	{
+		this.marketHistoryFileName = marketHistoryFileName;
+	}
 
 }
